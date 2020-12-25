@@ -1,12 +1,11 @@
 package main
 
-import (
-	. "gin-template/public"
-)
+import "gin-template/lower"
 
 func start() {
 	//LimitReal()
-	Run()
+	//Run()
+	lower.TestLower()
 }
 
 //todo consul register services
