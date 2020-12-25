@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -114,7 +115,25 @@ func limitRate() {
 	}
 }
 
-func main() {
-	limitRate()
+func MyLimit(next http.Handler) http.Handler {
+	r := rate.NewLimiter(1, 5)
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if !r.Allow() {
+			http.Error(writer, "too many requests", http.StatusTooManyRequests)
+			return
+		}
+		next.ServeHTTP(writer, request)
+	})
+}
 
+func limitReal() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		_, _ = writer.Write([]byte("OK!!!"))
+	})
+	_ = http.ListenAndServe(":8888", MyLimit(mux))
+}
+
+func main() {
+	limitReal()
 }
