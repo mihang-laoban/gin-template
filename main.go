@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 	"log"
+	"time"
 )
 
 func Server1(ch chan error) {
@@ -89,7 +92,7 @@ func Server2(ch chan error) {
 	ch <- err
 }
 
-func main() {
+func start() {
 	ch := make(chan error)
 
 	go Server1(ch)
@@ -97,4 +100,21 @@ func main() {
 
 	get := <-ch
 	log.Println(get)
+}
+
+func limitRate() {
+	r := rate.NewLimiter(1, 5)
+	for {
+		if r.AllowN(time.Now(), 2) {
+			fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
+		} else {
+			fmt.Println("too many request")
+		}
+		time.Sleep(time.Second)
+	}
+}
+
+func main() {
+	limitRate()
+
 }
