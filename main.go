@@ -5,7 +5,7 @@ import "gin-template/lower"
 func start() {
 	//LimitReal()
 	//Run()
-	lower.TestLower()
+	lower.TestLowerAsync()
 }
 
 //todo consul register services

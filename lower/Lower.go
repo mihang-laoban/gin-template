@@ -23,11 +23,11 @@ func GetProduct() (Product, error) {
 	return Product{ID: 12, Title: "apple", Price: 32}, nil
 }
 
-func GetSpare() Product {
-	return Product{ID: 0, Title: "banana", Price: 22}
+func GetSpare() (Product, error) {
+	return Product{ID: 0, Title: "banana", Price: 22}, nil
 }
 
-func TestLower() {
+func TestLowerSync() {
 	rand.Seed(time.Now().UnixNano())
 
 	configA := hystrix.CommandConfig{
@@ -49,5 +49,40 @@ func TestLower() {
 			fmt.Println(err)
 		}
 		time.Sleep(time.Second * 1)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func TestLowerAsync() {
+	rand.Seed(time.Now().UnixNano())
+
+	configA := hystrix.CommandConfig{
+		Timeout: 1000,
+	}
+	hystrix.ConfigureCommand("my_command", configA)
+
+	resultChan := make(chan Product, 1)
+
+	for {
+		errs := hystrix.Go("my_command", func() error {
+			p, _ := GetProduct()
+			resultChan <- p
+			return nil
+		}, func(e error) error {
+			rcp, err := GetSpare()
+			resultChan <- rcp
+			return err
+		})
+
+		select {
+		case getProd := <-resultChan:
+			fmt.Println(getProd)
+		case err := <-errs:
+			fmt.Println(err)
+		}
+		time.Sleep(time.Second * 1)
+
 	}
 }
