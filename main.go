@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"gin-template/lower"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -27,7 +31,7 @@ func runGin() {
 
 	router.POST("/post", func(c *gin.Context) {
 		type params struct {
-			Id   int    `json:"id"`
+			Id   int    `json:"Id"`
 			Name string `json:"name"`
 		}
 		var param params
@@ -45,8 +49,60 @@ func runGin() {
 	}
 }
 
+func Db() {
+	type Test struct {
+		Id   int
+		Name string
+	}
+
+	dsn := "root:123@tcp(127.0.0.1:3307)/test?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		fmt.Println(err)
+	}
+	var test Test
+	db.Find(&test)
+	//fmt.Println(res.Statement)
+	fmt.Println(test.Id, test.Name)
+}
+
 //todo consul register services
 
+func cache() {
+
+	var ctx = context.Background()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6380",
+		Password: "123", // no password set
+		DB:       0,     // use default DB
+	})
+
+	err := rdb.Set(ctx, "a", "tar", 0).Err()
+	if err != nil {
+		panic(err)
+	}
+
+	val, err := rdb.Get(ctx, "a").Result()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("key", val)
+
+	val2, err := rdb.Get(ctx, "key2").Result()
+	if err == redis.Nil {
+		fmt.Println("key2 does not exist")
+	} else if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("key2", val2)
+	}
+	// Output: key value
+	// key2 does not exist
+}
+
 func main() {
-	runGin()
+	//runGin()
+	//Db()
+	cache()
 }
