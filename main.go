@@ -16,6 +16,7 @@ func start() {
 	//Run()
 	lower.TestLowerAsync()
 	//lower.TestLowerSync()
+	//todo consul register services
 }
 
 func runGin() {
@@ -65,8 +66,6 @@ func Db() {
 	//fmt.Println(res.Statement)
 	fmt.Println(test.Id, test.Name)
 }
-
-//todo consul register services
 
 func cache() {
 
