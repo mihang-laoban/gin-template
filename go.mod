@@ -1,4 +1,4 @@
-module gin-template
+module github.com/mihang-laoban/gin-template
 
 go 1.14
 
